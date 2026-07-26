@@ -423,21 +423,24 @@ class VolumeProfileRenderer implements IPrimitivePaneRenderer {
           ctx.font = "bold 11px sans-serif";
           const label = `POC ${formatPrice(this.pocPrice, this.precision)}`;
           const m = ctx.measureText(label);
-          // Ancho del texto en CSS px. Usamos el bounding box real si está
-          // disponible, si no, `m.width` (que para sans-serif 11px es
-          // decente).  Math.max(20, ...) como floor por si el font todavía
-          // no cargó (caso raro: FontFace API async) y measureText da 0 o
-          // muy poco.
-          const textWidth = Math.max(
-            20,
-            Math.ceil(
-              (m as { actualBoundingBoxRight?: number }).actualBoundingBoxRight !=
-                null
-                ? ((m as { actualBoundingBoxRight: number }).actualBoundingBoxRight -
-                    (m as { actualBoundingBoxLeft: number }).actualBoundingBoxLeft)
-                : m.width,
-            ),
-          );
+          // Ancho del texto en CSS px. mdn/documentación: `m.width` es el ancho
+          // advance (idóneo para layout) del texto; `actualBoundingBoxRight -
+          // actualBoundingBoxLeft` es el bounding-box real de los glyphs (más
+          // ancho que `width` en negrita con números porque dibuja ink a ambos
+          // lados).  Usamos el MAYOR de los dos (más un safety de 6px) para que
+          // el último dígito no se corte por subreporte de measureText en
+          // HighDPI / font-face aún no cargado. Math.max(20, ...) piso floor.
+          const bboxWidth =
+            (m as { actualBoundingBoxRight?: number }).actualBoundingBoxRight !=
+            null
+              ? Math.max(
+                  0,
+                  ((m as { actualBoundingBoxRight: number }).actualBoundingBoxRight -
+                    (m as { actualBoundingBoxLeft: number }).actualBoundingBoxLeft) as number,
+                )
+              : 0;
+          const advanceWidth = m.width as number;
+          const textWidth = Math.max(20, Math.ceil(Math.max(advanceWidth, bboxWidth)) + 6);
           const anchor = this.labelAnchor();
           // Padding interna del label (left + right) y margen para que el
           // label NO toque el borde con el price scale (donde lo taparía el

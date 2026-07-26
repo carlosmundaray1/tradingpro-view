@@ -113,6 +113,13 @@ interface UseChartReturn {
   candleSeriesRef: React.RefObject<ISeriesApi<"Candlestick"> | null>;
   candlesRef: React.RefObject<Candle[]>;
   hover: HoverInfo | null;
+  /** Precio + Y (relativa al pane donde está el cursor) + paneIndex del
+   *  cursor del crosshair, capturados en cada `subscribeCrosshairMove`.
+   *  Sirven para que PriceChart.tsx renderice el recuadro blanco del
+   *  crosshair como div DOM por encima del recuadro naranja del último precio
+   *  (pane 0) o del eje de un indicador oscilador (pane > 0), replicando
+   *  TradingView Pro. `null` cuando el cursor sale del chart. */
+  crosshair: { price: number; y: number; paneIndex: number } | null;
   lastPrice: { value: number; pct: number } | null;
   setLastPrice: (v: { value: number; pct: number } | null) => void;
   paneOffsets: PaneOffset[];
@@ -200,6 +207,12 @@ export function useChart(symbol: string, _timeframe: string): UseChartReturn {
   // cada vez que cambia la cantidad de panes dentro del reconcile effect.
   const paneResizeObserverRef = useRef<ResizeObserver | null>(null);
 
+  // Precio + Y del cursor en el pane 0 del chart, capturados en cada
+  // `subscribeCrosshairMove`. Sirven para que PriceChart.tsx pueda renderizar
+  // el recuadro blanco del crosshair como div DOM (con el precio formateado)
+  // por encima del recuadro naranja del último precio, replicando el
+  // comportamiento de TradingView Pro.
+  const [crosshair, setCrosshair] = useState<{ price: number; y: number; paneIndex: number } | null>(null);
   const [hover, setHover] = useState<HoverInfo | null>(null);
   const [lastPrice, setLastPrice] = useState<{ value: number; pct: number } | null>(null);
   const [paneOffsets, setPaneOffsets] = useState<PaneOffset[]>([]);
@@ -342,10 +355,21 @@ export function useChart(symbol: string, _timeframe: string): UseChartReturn {
       },
       crosshair: {
         mode: CrosshairMode.Normal,
-        vertLine: { color: TV_COLORS.textMuted, width: 1, style: 3, labelBackgroundColor: TV_COLORS.panel },
-        horzLine: { color: TV_COLORS.textMuted, width: 1, style: 3, labelBackgroundColor: TV_COLORS.panel },
+        vertLine: { color: TV_COLORS.textMuted, width: 1, style: 3, labelBackgroundColor: TV_COLORS.text },
+        // El recuadro blanco del crosshair lo pintamos como div DOM en
+        // PriceChart.tsx (igual que el del último precio) para poder posar-lo
+        // encima del recuadro naranja (replicando TV Pro). Apagamos el label
+        // nativo de la línea horizontal (eje Y) para no duplicarlo.
+        horzLine: { color: TV_COLORS.textMuted, width: 1, style: 3, labelVisible: false },
       },
-      rightPriceScale: { borderColor: TV_COLORS.border, textColor: TV_COLORS.textMuted },
+      // Forzamos un ancho mínimo del eje de precios derecho para que el
+      // recuadro naranja del último precio (76px h-[28px] con pl-2 pr-1 y font
+      // mono 12px) entre completo SIN desbordarse al chart area. Sin esto, en
+      // BTC el primer dígito "6" de "64.568,69" se cortaba扇 — y antes lo
+      // parchábamos extendiendo el div 8px hacia la izquierda (invadiendo el
+      // chart area), lo que el usuario reportó como "se sale al chart". Con
+      // minimumWidth el eje es lo suficientemente ancho por sí mismo.
+      rightPriceScale: { borderColor: TV_COLORS.border, textColor: TV_COLORS.textMuted, minimumWidth: 80 },
       // El eje izquierdo no se muestra por defecto en ningún pane. Se activa
       // por-pane sólo cuando hay un overlay con `ownsOverlayAxis` (ej: ADX
       // superpuesto sobre Squeeze) — en ese caso, el dueño original (Squeeze)
@@ -369,8 +393,15 @@ export function useChart(symbol: string, _timeframe: string): UseChartReturn {
       borderDownColor: TV_COLORS.red,
       wickUpColor: TV_COLORS.green,
       wickDownColor: TV_COLORS.red,
-      // Línea horizontal del último precio en coral (TV Pro), sin label nativo
-      // (vamos a pintar el label custom HTML con precio + countdown juntos).
+      // El recuadro del último precio lo pintamos como div DOM en
+      // PriceChart.tsx (no como axisLabel nativo de lwc), porque necesitamos
+      // control fino sobre el posicionamiento (alineado al borde derecho del
+      // priceScale, no al borde del container) y sobre el z-index (que el
+      // crosshair blanco de lwc se posé encima cuando el cursor coincide). El
+      // axisLabel nativo del último precio lo apagamos con lastValueVisible:
+      // false para que no se duplique con nuestro div DOM, pero mantenemos la
+      // línea horizontal naranja del último precio con priceLineVisible: true
+      // (esa no se desborda: vive sólo dentro del chart area).
       priceLineColor: TV_COLORS.orange,
       priceLineStyle: 2,
       lastValueVisible: false,
@@ -571,6 +602,41 @@ export function useChart(symbol: string, _timeframe: string): UseChartReturn {
     chartEl.addEventListener("pointerup", onPointerUp);
 
     chart.subscribeCrosshairMove((param) => {
+      // Capturar el precio + Y del cursor en el pane donde el cursor está
+      // parado (para que PriceChart pueda renderizar el recuadro blanco del
+      // crosshair como div DOM por encima del recuadro naranja, replicando
+      // TradingView Pro). El pane se determina con `param.paneIndex`. Para el
+      // pane 0 usamos el candleSeries; para panes osciladores usamos la
+      // primera serie del instanceSeriesRef cuyo paneIndex coincide.
+      if (!param.point || !isFinite(param.point.y) || param.paneIndex === undefined) {
+        setCrosshair(null);
+      } else {
+        const paneIdx = param.paneIndex;
+        let ser: SeriesApi | null = null;
+        if (paneIdx === 0) {
+          ser = candleSeriesRef.current;
+        } else {
+          for (const ent of instanceSeriesRef.current.values()) {
+            if (ent.paneIndex === paneIdx) {
+              const firstKey = Object.keys(ent.series)[0];
+              if (firstKey) {
+                ser = ent.series[firstKey];
+                break;
+              }
+            }
+          }
+        }
+        if (!ser) {
+          setCrosshair(null);
+        } else {
+          const p = ser.coordinateToPrice(param.point.y);
+          if (p !== null && isFinite(p)) {
+            setCrosshair({ price: p, y: param.point.y, paneIndex: paneIdx });
+          } else {
+            setCrosshair(null);
+          }
+        }
+      }
       // Live-update: measure y previews según el tool activo.
       if (!param.time || !candleSeriesRef.current || !param.point) {
         // (following hover logic still below)
@@ -1345,6 +1411,17 @@ export function useChart(symbol: string, _timeframe: string): UseChartReturn {
     });
   }, [measure]);
 
+  // ── Efecto bomba: forzar redraw del chart cuando llega un nuevo precio
+  //    en vivo (vía WS desde PriceChart → setLastPrice). El recuadro del
+  //    último precio se dibuja como div DOM en PriceChart.tsx (no primitive),
+  //    pero necesitamos que lwc actualice la "última vela" para que esa Y
+  //    sea la correcta. Llamamos applyOptions({}) que es un redraw barato.
+  useEffect(() => {
+    const cs = candleSeriesRef.current;
+    if (!cs || !lastPrice) return;
+    cs.applyOptions({});
+  }, [lastPrice]);
+
   void _timeframe;
 
   return {
@@ -1353,6 +1430,7 @@ export function useChart(symbol: string, _timeframe: string): UseChartReturn {
     candleSeriesRef,
     candlesRef,
     hover,
+    crosshair,
     lastPrice,
     setLastPrice,
     paneOffsets,

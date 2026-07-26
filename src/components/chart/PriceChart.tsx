@@ -28,6 +28,7 @@ export function PriceChart({ symbol, timeframe }: Props) {
     candleSeriesRef,
     candlesRef,
     hover,
+    crosshair,
     lastPrice,
     setLastPrice,
     paneOffsets,
@@ -524,27 +525,59 @@ export function PriceChart({ symbol, timeframe }: Props) {
       </div>
 
       {/* Recuadro del último precio estilo TradingView Pro — naranja/coral
-          (#FF6B57) en el eje derecho, alineado al último close. Contiene:
-            - Line 1: precio del último close (texto blanco, grande)
-            - Line 2: countdown de la vela actual (texto blanco/gris chico)
-          Se actualiza en cada frame via priceToCoordinate(lastPrice.value) y
-          el countdown cada 250ms via candleCloseTime(tf, lastCandle.time). */}
-      {lastPrice && lastPriceY !== null && (
+          (#FF6B57) DENTRO del priceScale derecho del pane 0, alineado al borde
+          derecho del eje (igual que lwc pinta todos sus axisLabels, incluido
+          el recuadro blanco del crosshair). El ancho del eje se fuerza con
+          `minimumWidth: 80` en `useChart.ts` para que el precio completo
+          entre (incluido BTC "64.568,69") sin desbordarse al chart area.
+          Bajamos el z-index para que el crosshair label blanco (div DOM de
+          abajo) se posé encima cuando el cursor coincide en Y con el precio. */}
+      {lastPrice && lastPriceY !== null && paneOffsets[0] && paneOffsets[0].rightAxisWidth > 0 && (
         <div
           style={{
             position: "absolute",
-            top: lastPriceY - 14,
+            top: (paneOffsets[0]?.top ?? 0) + lastPriceY - 14,
             right: 0,
-            zIndex: 20,
+            width: paneOffsets[0].rightAxisWidth,
+            zIndex: 1,
           }}
-          className="pointer-events-none flex min-w-[56px] flex-col items-end rounded-l-[2px] bg-[#FF6B57] px-2 py-[2px] font-mono tabular-nums leading-tight shadow-sm"
+          className="pointer-events-none flex h-[28px] flex-col items-end justify-center rounded-l-[2px] bg-[#FF6B57] pl-2 pr-1 font-mono tabular-nums leading-tight shadow-sm"
         >
-          <span className="text-[12px] font-semibold text-white">
+          <span className="truncate text-[12px] font-semibold text-white">
             {formatPrice(lastPrice.value, pricePrecision)}
           </span>
           {countdown && (
-            <span className="mt-[1px] text-[10px] text-white/85">{countdown}</span>
+            <span className="mt-[1px] truncate text-[10px] text-white/85">{countdown}</span>
           )}
+        </div>
+      )}
+
+      {/* Recuadro blanco del crosshair en el eje de precios (replica TV Pro):
+          pinta el valor del punto Y donde el cursor está parado, en un
+          recuadro blanco con texto negro, sobre el priceScale derecho del
+          pane donde el cursor está. En el pane 0 eso es el precio del activo;
+          en panes osciladores es el valor del oscilador. Cuando el cursor
+          coincide en Y con el último precio, este recuadro se posa encima
+          del naranja (zIndex 2 > 1) y lo tapa, igual que en TradingView Pro.
+          Replicar como div DOM porque el label nativo de lwc vive en el canvas
+          del eje, que queda por debajo de cualquier div DOM overlay, así que
+          lwc no podría posar su blanco encima del naranja. */}
+      {crosshair && paneOffsets[crosshair.paneIndex] && paneOffsets[crosshair.paneIndex].rightAxisWidth > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            top: (paneOffsets[crosshair.paneIndex]?.top ?? 0) + crosshair.y - 11,
+            right: 0,
+            width: paneOffsets[crosshair.paneIndex].rightAxisWidth,
+            zIndex: 2,
+          }}
+          className="pointer-events-none flex h-[22px] items-center justify-end rounded-l-[2px] bg-[#d1d4dc] pl-2 pr-1 font-mono text-[11px] font-semibold tabular-nums leading-tight text-[#131722] shadow-sm"
+        >
+          <span className="truncate">
+            {crosshair.paneIndex === 0
+              ? formatPrice(crosshair.price, pricePrecision)
+              : crosshair.price.toFixed(2)}
+          </span>
         </div>
       )}
     </div>
