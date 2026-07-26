@@ -541,7 +541,7 @@ export function PriceChart({ symbol, timeframe }: Props) {
             width: paneOffsets[0].rightAxisWidth,
             zIndex: 1,
           }}
-          className="pointer-events-none flex h-[28px] flex-col items-end justify-center rounded-l-[2px] bg-[#FF6B57] pl-2 pr-1 font-mono tabular-nums leading-tight shadow-sm"
+          className="pointer-events-none flex h-[28px] flex-col items-center justify-center rounded-l-[2px] bg-[#FF6B57] px-1 font-mono tabular-nums leading-tight shadow-sm"
         >
           <span className="truncate text-[12px] font-semibold text-white">
             {formatPrice(lastPrice.value, pricePrecision)}
@@ -571,7 +571,7 @@ export function PriceChart({ symbol, timeframe }: Props) {
             width: paneOffsets[crosshair.paneIndex].rightAxisWidth,
             zIndex: 2,
           }}
-          className="pointer-events-none flex h-[22px] items-center justify-end rounded-l-[2px] bg-[#d1d4dc] pl-2 pr-1 font-mono text-[11px] font-semibold tabular-nums leading-tight text-[#131722] shadow-sm"
+          className="pointer-events-none flex h-[22px] items-center justify-center rounded-l-[2px] bg-[#d1d4dc] px-1 font-mono text-[11px] font-semibold tabular-nums leading-tight text-[#131722] shadow-sm"
         >
           <span className="truncate">
             {crosshair.paneIndex === 0

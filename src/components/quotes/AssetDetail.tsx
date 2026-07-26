@@ -134,7 +134,7 @@ export function AssetDetail({ symbol }: Props) {
               <div className="truncate text-lg font-bold uppercase tracking-tight text-tv-text">
                 {base}
               </div>
-              <div className="truncate text-[11px] text-tv-text-dim">
+              <div className="truncate text-[11px] text-tv-text-muted">
                 {name}
               </div>
             </div>
@@ -157,7 +157,7 @@ export function AssetDetail({ symbol }: Props) {
               <span className={up24h === null ? "text-tv-text-muted" : up24h ? "text-tv-green" : "text-tv-red"}>
                 {changePct != null ? formatPct(changePct) : "—"}
               </span>
-              <span className="text-[10px] text-tv-text-dim">24h</span>
+              <span className="text-[10px] text-tv-text-muted">24h</span>
             </div>
           </div>
 
@@ -165,7 +165,7 @@ export function AssetDetail({ symbol }: Props) {
           <div className="flex flex-col gap-1.5 rounded-md border border-tv-border/40 bg-tv-bg/40 px-3 py-2">
             {rows.map((r) => (
               <div key={r.label} className="flex items-center justify-between text-xs">
-                <span className="text-tv-text-dim">{r.label}</span>
+                <span className="text-tv-text-muted">{r.label}</span>
                 <span className="font-medium tabular-nums text-tv-text">{r.value}</span>
               </div>
             ))}
@@ -195,7 +195,7 @@ function PerfTile({ label, value }: { label: string; value: number | null }) {
   const up = value == null ? null : value >= 0;
   return (
     <div className="flex flex-col gap-0.5 rounded-md border border-tv-border/40 bg-tv-bg/40 px-2.5 py-1.5">
-      <span className="text-[10px] uppercase tracking-wider text-tv-text-dim">{label}</span>
+      <span className="text-[10px] uppercase tracking-wider text-tv-text-muted">{label}</span>
       <span
         className={cn(
           "text-sm font-semibold tabular-nums",
