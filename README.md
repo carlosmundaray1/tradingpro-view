@@ -1,10 +1,14 @@
-# TradingView Free
+# TradingPro View
 
 App web (Next.js) que muestra charts de criptomonedas con datos en vivo de
 Binance (REST + WebSocket), indicadores técnicos (EMA, ADX, Squeeze Momentum,
 Volume Profile, etc.), watchlist y panel de quotes en tiempo real.
 
 Live: <https://carlosmundaray1.github.io/tradingview-free/>
+
+> Nota: el repo GitHub y la URL pública siguen siendo `tradingview-free` por
+> compatibilidad con el deploy ya existente; el nombre display del producto
+> es **TradingPro View**.
 
 ## Stack
 
@@ -67,7 +71,7 @@ Requisitos: Android Studio instalado, Java JDK 17+.
 npm install @capacitor/core @capacitor/cli @capacitor/android
 
 # 2) Inicializar Capacitor (si no se hizo todavía)
-npx cap init "TradingView Free" "com.carlosmundaray1.tradingviewfree" --web-dir=out
+npx cap init "TradingPro View" "app.tradingproview" --web-dir=out
 
 # 3) Build estático fresco
 $env:NEXT_PUBLIC_BASE_PATH = "/tradingview-free"

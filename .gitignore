@@ -57,6 +57,12 @@ credentials.json
 capacitor.config.json
 # No ignorar capacitor.config.ts (ese sí va al repo)
 
+# JDK local (descargado por Capacitor setup; vía git ignore para que no pese en el repo)
+/jdk17/
+/jdk17-extract/
+/jdk21/
+/jdk21-extract/
+
 # logs locales
 *.log
 devserver.*.log

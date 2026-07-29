@@ -1,5 +1,5 @@
 {
-  "name": "tradingview-gratis",
+  "name": "tradingpro-view",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/cli": "^8.4.2",
+    "@capacitor/core": "^8.4.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lightweight-charts": "^5.2.0",
