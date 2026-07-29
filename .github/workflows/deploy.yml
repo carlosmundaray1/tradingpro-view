@@ -33,11 +33,13 @@ jobs:
       - name: Build (static export)
         env:
           NODE_ENV: production
-          # El basePath se infiere del nombre del repo, así el workflow
-          # no se rompe si se renombra el repo. GitHub Pages siempre sirve
-          # bajo https://<user>.github.io/<repo-name>/.
-          NEXT_PUBLIC_BASE_PATH: /${GITHUB_REPOSITORY##*/}
-        run: npx next build --webpack
+        # El basePath se infiere del nombre del repo a partir de GITHUB_REPOSITORY
+        # (que tiene el formato "owner/repo-name"), asi no se rompe si se renombra.
+        # GitHub Pages siempre sirve bajo https://<user>.github.io/<repo-name>/.
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY##*/}"
+          echo "Building with basePath=/$REPO_NAME"
+          NEXT_PUBLIC_BASE_PATH="/$REPO_NAME" npx next build --webpack
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
