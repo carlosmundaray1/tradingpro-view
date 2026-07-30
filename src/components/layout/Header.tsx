@@ -1,6 +1,6 @@
 "use client";
 
-import { Code2, Zap } from "lucide-react";
+import { Code2 } from "lucide-react";
 import { SymbolSelector } from "@/components/chart/SymbolSelector";
 import { TimeframeSelector } from "@/components/chart/TimeframeSelector";
 import { IndicatorMenu } from "@/components/chart/IndicatorMenu";
@@ -8,17 +8,21 @@ import { Separator } from "@/components/ui/separator";
 
 export function Header() {
   return (
-    <header className="flex h-12 items-center justify-between border-b border-tv-border bg-tv-panel px-3">
-      <div className="flex items-center gap-1">
-        <div className="flex items-center gap-2 pr-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded bg-tv-blue/20">
-            <Zap className="h-4 w-4 text-tv-blue" />
-          </div>
-          <span className="text-sm font-semibold text-tv-text">
-            TradingPro <span className="text-tv-text-muted">View</span>
-          </span>
+    <header className="flex h-16 items-end justify-between overflow-visible border-b border-tv-border bg-tv-panel px-3 pb-3 pl-8">
+      <div className="flex items-end gap-1">
+        <div className="flex items-end pr-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="TradingPro View"
+            className="h-24 w-auto shrink-0 self-start brightness-0 invert"
+            style={{ marginBottom: "-30px" }}
+          />
         </div>
-        <Separator orientation="vertical" className="h-6 bg-tv-border" />
+        <span className="pb-1 text-sm font-semibold tracking-tight text-tv-text">
+          TradingPro <span className="text-tv-text-muted">View</span>
+        </span>
+        <Separator orientation="vertical" className="ml-2 h-10 bg-tv-border" />
         <SymbolSelector />
         <Separator orientation="vertical" className="h-6 bg-tv-border" />
         <TimeframeSelector />

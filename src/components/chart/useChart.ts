@@ -349,6 +349,7 @@ export function useChart(symbol: string, _timeframe: string): UseChartReturn {
         textColor: TV_COLORS.text,
         fontFamily: "var(--font-sans), Inter, system-ui, sans-serif",
         fontSize: 11,
+        attributionLogo: false,
         panes: {
           enableResize: true,
           separatorColor: TV_COLORS.border,
