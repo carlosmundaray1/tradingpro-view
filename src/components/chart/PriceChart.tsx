@@ -13,6 +13,7 @@ import { DrawingOverlay } from "./DrawingOverlay";
 import { getDescriptor } from "@/lib/indicators/catalog";
 import type { Timeframe } from "@/lib/binance/types";
 import { candleCloseTime, formatCountdown } from "@/lib/binance/timeframe";
+import { TzSelector } from "./TzSelector";
 
 interface Props {
   symbol: string;
@@ -501,6 +502,11 @@ export function PriceChart({ symbol, timeframe }: Props) {
       {thresholdLabels.map((tl, i) => {
         const offset = paneOffsets[tl.paneIndex];
         if (!offset || !Number.isFinite(tl.y)) return null;
+        // Saltar threshold labels que caen en el área del timeScale (eje X)
+        // — donde además vive el chip de zona horaria. Sin este filtro el
+        // "threshold 23.00" del ADX (siendo el pane 1) se superponía con el
+        // chip "(UTC-4) Caracas" abajo a la derecha.
+        if (offset.height > 0 && tl.y > offset.height - 18) return null;
         const measured = offset.rightAxisWidth ?? 0;
         const rightPad = Math.max(76, measured + 8);
         // Pequeño offset vertical para alinear el centro del texto con la línea
@@ -520,8 +526,13 @@ export function PriceChart({ symbol, timeframe }: Props) {
         );
       })}
 
-      <div className="pointer-events-none absolute bottom-1 right-2 z-10 text-[10px] text-tv-text-dim">
-        Charts by TradingView Lightweight Charts™
+      {/* Selector de zona horaria estilo TradingView Pro, abajo a la derecha
+          debajo de la escala de precios. Al hacer click abre un dropdown con
+          todas las UTC agrupadas; al seleccionar una, el eje X del chart
+          reformatea las horas según esa TZ (respects DST). La TZ por defecto
+          es la del browser y se persiste en localStorage. */}
+      <div className="absolute bottom-1 right-2 z-30">
+        <TzSelector />
       </div>
 
       {/* Recuadro del último precio estilo TradingView Pro — naranja/coral

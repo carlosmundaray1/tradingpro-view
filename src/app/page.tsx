@@ -8,6 +8,7 @@ import { BottomPanel } from "@/components/layout/BottomPanel";
 import { PriceChart } from "@/components/chart/PriceChart";
 import { IndicatorSettingsDialog } from "@/components/chart/IndicatorSettingsDialog";
 import { AddIndicatorDialog } from "@/components/chart/AddIndicatorDialog";
+import { TzStoreInit } from "@/components/chart/TzStoreInit";
 import { useChartStore } from "@/lib/store/chart-store";
 import { fetchExchangeSymbols } from "@/lib/binance/rest";
 import { PanelRight } from "lucide-react";
@@ -96,6 +97,7 @@ export default function HomePage() {
       <BottomPanel />
       <IndicatorSettingsDialog />
       <AddIndicatorDialog />
+      <TzStoreInit />
     </div>
   );
 }

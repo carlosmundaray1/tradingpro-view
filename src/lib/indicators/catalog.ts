@@ -129,16 +129,16 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   // ───────── Medias móviles ─────────
   {
     type: "sma",
-    name: "SMA",
+    name: "SMA · Simple Moving Average",
     category: "Medias móviles",
     pane: "overlay",
     hint: "Media móvil simple",
-    params: [{ key: "period", label: "Período", type: "int", min: 1, max: 500, default: 20 }],
+    params: [{ key: "period", label: "Período", type: "int", min: 1, max: 500, default: 9 }],
     series: [{ key: "value", label: "SMA", color: "#ff9800", shape: "line" }],
   },
   {
     type: "ema",
-    name: "EMA",
+    name: "EMA · Exponential Moving Average",
     category: "Medias móviles",
     pane: "overlay",
     hint: "Media móvil exponencial",
@@ -147,7 +147,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "wma",
-    name: "WMA",
+    name: "WMA · Weighted Moving Average",
     category: "Medias móviles",
     pane: "overlay",
     hint: "Media móvil ponderada lineal",
@@ -156,7 +156,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "dema",
-    name: "DEMA",
+    name: "DEMA · Double Exponential Moving Average",
     category: "Medias móviles",
     pane: "overlay",
     hint: "Double Exponential MA",
@@ -165,7 +165,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "tema",
-    name: "TEMA",
+    name: "TEMA · Triple Exponential Moving Average",
     category: "Medias móviles",
     pane: "overlay",
     hint: "Triple Exponential MA",
@@ -174,7 +174,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "hma",
-    name: "HMA",
+    name: "HMA · Hull Moving Average",
     category: "Medias móviles",
     pane: "overlay",
     hint: "Hull Moving Average",
@@ -183,7 +183,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "vwma",
-    name: "VWMA",
+    name: "VWMA · Volume Weighted Moving Average",
     category: "Medias móviles",
     pane: "overlay",
     hint: "Volume Weighted MA",
@@ -192,7 +192,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "vwap",
-    name: "VWAP",
+    name: "VWAP · Volume Weighted Average Price",
     category: "Medias móviles",
     pane: "overlay",
     hint: "Volume Weighted Average Price (intraday)",
@@ -239,7 +239,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "atr",
-    name: "ATR",
+    name: "ATR · Average True Range",
     category: "Volatilidad",
     pane: "separate",
     hint: "Average True Range (volatilidad)",
@@ -249,7 +249,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   // ───────── Osciladores ─────────
   {
     type: "rsi",
-    name: "RSI",
+    name: "RSI · Relative Strength Index",
     category: "Osciladores",
     pane: "separate",
     hint: "Relative Strength Index (Wilder)",
@@ -258,7 +258,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "stoch",
-    name: "Stochastic",
+    name: "Stochastic · Stochastic Oscillator",
     category: "Osciladores",
     pane: "separate",
     hint: "Stochastic %K / %D",
@@ -274,7 +274,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "macd",
-    name: "MACD",
+    name: "MACD · Moving Average Convergence Divergence",
     category: "Osciladores",
     pane: "separate",
     hint: "Moving Average Convergence Divergence",
@@ -291,7 +291,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "adx",
-    name: "ADX",
+    name: "ADX · Average Directional Index",
     category: "Osciladores",
     pane: "separate",
     hint: "Average Directional Index (DI+ / DI−) con línea de umbral configurable",
@@ -309,7 +309,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "cci",
-    name: "CCI",
+    name: "CCI · Commodity Channel Index",
     category: "Osciladores",
     pane: "separate",
     hint: "Commodity Channel Index",
@@ -318,7 +318,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "willr",
-    name: "Williams %R",
+    name: "Williams %R · Williams Percent Range",
     category: "Osciladores",
     pane: "separate",
     hint: "Williams Percent Range",
@@ -327,7 +327,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "mfi",
-    name: "MFI",
+    name: "MFI · Money Flow Index",
     category: "Osciladores",
     pane: "separate",
     hint: "Money Flow Index (RSI ponderado por volumen)",
@@ -337,7 +337,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   // ───────── Volumen ─────────
   {
     type: "volume",
-    name: "Volumen",
+    name: "Volume · Volume",
     category: "Volumen",
     pane: "volume",
     hint: "Histograma de volumen",
@@ -349,7 +349,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "obv",
-    name: "OBV",
+    name: "OBV · On Balance Volume",
     category: "Volumen",
     pane: "separate",
     hint: "On Balance Volume",
@@ -359,7 +359,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   // ───────── Tendencia ─────────
   {
     type: "psar",
-    name: "Parabolic SAR",
+    name: "PSAR · Parabolic SAR",
     category: "Tendencia",
     pane: "overlay",
     hint: "Stop and Reverse",
@@ -408,7 +408,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   // ───────── Más medias móviles avanzadas ─────────
   {
     type: "kama",
-    name: "KAMA",
+    name: "KAMA · Kaufman Adaptive Moving Average",
     category: "Medias móviles",
     pane: "overlay",
     hint: "Kaufman Adaptive Moving Average",
@@ -421,7 +421,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "frama",
-    name: "FRAMA",
+    name: "FRAMA · Fractal Adaptive Moving Average",
     category: "Medias móviles",
     pane: "overlay",
     hint: "Fractal Adaptive Moving Average",
@@ -430,7 +430,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "hullMA",
-    name: "Hull MA",
+    name: "Hull MA · Hull Moving Average",
     category: "Medias móviles",
     pane: "overlay",
     hint: "Hull Moving Average (variante short/long)",
@@ -469,7 +469,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "bbwidth",
-    name: "BB Width",
+    name: "BB Width · Bollinger Bands Width",
     category: "Volatilidad",
     pane: "separate",
     hint: "Bollinger Bands Width (volatilidad comprimida/expandida)",
@@ -481,7 +481,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "stddev",
-    name: "Standard Deviation",
+    name: "StdDev · Standard Deviation",
     category: "Volatilidad",
     pane: "separate",
     hint: "Desviación estándar de los cierres",
@@ -490,7 +490,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "chop",
-    name: "Choppiness Index",
+    name: "Chop · Choppiness Index",
     category: "Volatilidad",
     pane: "separate",
     hint: "¿Mercado en rango o tendencial? (>61.8 rango, <38.2 tendencia)",
@@ -514,7 +514,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "roc",
-    name: "ROC",
+    name: "ROC · Rate of Change",
     category: "Osciladores",
     pane: "separate",
     hint: "Rate of Change",
@@ -523,7 +523,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "trix",
-    name: "TRIX",
+    name: "TRIX · Triple EMA Rate of Change",
     category: "Osciladores",
     pane: "separate",
     hint: "Triple EMA ROC",
@@ -532,7 +532,7 @@ export const INDICATOR_CATALOG: IndicatorDescriptor[] = [
   },
   {
     type: "cmo",
-    name: "CMO",
+    name: "CMO · Chande Momentum Oscillator",
     category: "Osciladores",
     pane: "separate",
     hint: "Chande Momentum Oscillator",

@@ -10,10 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
 import { INDICATOR_CATALOG, getDescriptor, type IndicatorDescriptor } from "@/lib/indicators/catalog";
 import { useChartStore } from "@/lib/store/chart-store";
-import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
   "Medias móviles",
@@ -88,13 +86,6 @@ export function AddIndicatorDialog() {
                       key={d.type}
                       d={d}
                       onAdd={() => {
-                        // Auto-overlay: si el descriptor es overlay-friendly
-                        // (ownsOverlayAxis) y ya existe al menos un indicador
-                        // "separate" no oculto, anclamos el nuevo indicador al
-                        // pane del primer separate (overlayPaneIndex=1) para
-                        // reproducir el eje doble de TV Pro (ej: ADX sobre el
-                        // pane del Squeeze). Si no hay separados previos, se
-                        // crea como pane nuevo dedicado.
                         let overrides: { overlayPaneIndex?: number } = {};
                         if (d.ownsOverlayAxis === "right" || d.ownsOverlayAxis === "left") {
                           const hasSeparate = useChartStore
@@ -126,27 +117,23 @@ function IndicatorRow({
   d: IndicatorDescriptor;
   onAdd: () => void;
 }) {
-  const paramSummary = d.params.length > 0 ? d.params.map((p) => p.default).join(", ") : "";
   return (
-    <div className="flex items-center justify-between px-3 py-2 hover:bg-tv-panel-hover">
-      <div className="flex flex-col gap-0.5">
-        <span className="text-sm font-medium text-tv-text">{d.name}</span>
-        <span className="text-[10px] text-tv-text-dim">
-          {d.hint}
-          {paramSummary && ` · defaults ${paramSummary}`}
-        </span>
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onAdd}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onAdd();
+        }
+      }}
+      className="w-full cursor-pointer px-3 py-2 transition-colors hover:bg-tv-panel-hover focus-visible:bg-tv-panel-hover focus-visible:outline-none"
+    >
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <span className="truncate text-sm font-medium text-tv-text">{d.name}</span>
+        <span className="truncate text-[10px] text-tv-text-muted">{d.hint}</span>
       </div>
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={onAdd}
-        className={cn(
-          "px-2 py-1 text-xs font-medium",
-          "bg-tv-blue/10 text-tv-blue hover:bg-tv-blue/20",
-        )}
-      >
-        Añadir
-      </Button>
     </div>
   );
 }

@@ -11,8 +11,8 @@ const PRICE_LOCALE = "es-AR";
  *  precios coincidan con el `tickSize` real de Binance y con TradingView.
  *
  *  Formato de salida: "63.234,56" (miles con punto, decimal con coma). */
-export function formatPrice(n: number, precision?: number): string {
-  if (!isFinite(n)) return "—";
+export function formatPrice(n: number | null | undefined, precision?: number): string {
+  if (n == null || !isFinite(n)) return "—";
   const opts: Intl.NumberFormatOptions = { useGrouping: true };
   if (typeof precision === "number" && precision >= 0) {
     if (n >= 1000) {
@@ -53,8 +53,8 @@ export function formatPrice(n: number, precision?: number): string {
   return n.toLocaleString(PRICE_LOCALE, opts);
 }
 
-export function formatPct(n: number): string {
-  if (!isFinite(n)) return "—";
+export function formatPct(n: number | null | undefined): string {
+  if (n == null || !isFinite(n)) return "—";
   const sign = n >= 0 ? "+" : "";
   return `${sign}${n.toLocaleString(PRICE_LOCALE, {
     minimumFractionDigits: 2,
@@ -63,7 +63,8 @@ export function formatPct(n: number): string {
   })}%`;
 }
 
-export function formatVolume(n: number): string {
+export function formatVolume(n: number | null | undefined): string {
+  if (n == null || !isFinite(n)) return "—";
   if (n >= 1e9) return `${(n / 1e9).toLocaleString(PRICE_LOCALE, { maximumFractionDigits: 2 })}B`;
   if (n >= 1e6) return `${(n / 1e6).toLocaleString(PRICE_LOCALE, { maximumFractionDigits: 2 })}M`;
   if (n >= 1e3) return `${(n / 1e3).toLocaleString(PRICE_LOCALE, { maximumFractionDigits: 2 })}K`;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useChartStore } from "@/lib/store/chart-store";
 import { useQuotes, type Quote } from "@/lib/hooks/useQuotes";
 import { useAssetStats } from "@/lib/hooks/useAssetStats";
@@ -65,7 +66,16 @@ export function AssetDetail({ symbol }: Props) {
   // Me subscribo a watchlist + symbol activo (dedupe) para tener
   // ambas fuentes en un único estado. Esto mantiene el precio grande
   // siempre fresco, incluso si el símbolo no está en la watchlist.
-  const symbols = Array.from(new Set([...watchlist, symbol]));
+  //
+  // IMPORTANTE: el array resultante se estabiliza con useMemo — si lo
+  // armamos inline en cada render, cada tick de precio genera un nuevo
+  // array (nueva referencia) y el hook useQuotes vuelve a suscribirse
+  // al WS, perdiendo actualizaciones (síntoma: el precio se congela
+  // aunque el chart principal siga moviéndose).
+  const symbols = useMemo(
+    () => Array.from(new Set([...watchlist, symbol])),
+    [watchlist.join("|"), symbol],
+  );
   const quotes = useQuotes(symbols);
   const stats = useAssetStats(symbol);
   const setSymbol = useChartStore((s) => s.setSymbol);

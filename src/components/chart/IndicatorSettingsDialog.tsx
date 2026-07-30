@@ -44,6 +44,7 @@ export function IndicatorSettingsDialog() {
           <SettingsForm
             key={target.id + JSON.stringify(target.params) + JSON.stringify(target.colors) + JSON.stringify(target.lineWidths) + JSON.stringify(target.lineStyles) + JSON.stringify(target.seriesHidden) + JSON.stringify(target.thresholdLines ?? []) + JSON.stringify(target.overlayPaneIndex)}
             target={target}
+            instances={instances}
             onSave={(patch) => {
               updateIndicator(target.id, patch);
               setTarget(null);
@@ -86,11 +87,12 @@ export function IndicatorSettingsDialog() {
 
 interface FormProps {
   target: IndicatorInstance;
+  instances: IndicatorInstance[];
   onSave: (patch: Partial<IndicatorInstance>) => void;
   onReset: () => void;
 }
 
-function SettingsForm({ target, onSave, onReset }: FormProps) {
+function SettingsForm({ target, instances, onSave, onReset }: FormProps) {
   const d = getDescriptor(target.type);
   const [params, setParams] = useState<Record<string, number | string | boolean>>(() => ({ ...target.params }));
   const [colors, setColors] = useState<Record<string, string>>(() => ({ ...target.colors }));
@@ -242,25 +244,56 @@ function SettingsForm({ target, onSave, onReset }: FormProps) {
             {overlayPaneIndex !== undefined && (
               <div className="flex flex-col gap-1 pl-5">
                 <span className="text-[10px] text-tv-text-muted">
-                  Posición ordinal del indicador separado a superponer (1 = primero).
+                  Pane separado donde superponer este indicador. Cada uno usa
+                  su propia escala vertical dentro del mismo pane.
                 </span>
-                <Input
-                  type="number"
-                  min={1}
-                  max={20}
-                  step={1}
+                <select
                   value={overlayPaneIndex}
-                  onChange={(e) => {
-                    const n = parseInt(e.target.value, 10);
-                    if (!isNaN(n) && n >= 1) setOverlayPaneIndex(n);
-                  }}
-                  className="bg-tv-bg tabular-nums w-20"
-                />
-                <span className="text-[10px] text-tv-text-muted">
-                  Ej: si Squeeze es el primer oscilador y ADX es el segundo, dejá
-                  ADX con valor 1 para dibujarlo sobre el Squeeze. Cada uno
-                  usará su propia escala vertical dentro del mismo pane.
-                </span>
+                  onChange={(e) => setOverlayPaneIndex(parseInt(e.target.value, 10))}
+                  className="bg-tv-bg border border-tv-border rounded px-2 py-1 text-sm w-40"
+                >
+                  {(() => {
+                    // Listar los separados disponibles (excluyendo el propio target)
+                    // ordenados por posicion ordinal (1, 2, 3...). El ordinal N se
+                    // refiere a la posicion entre los separados SIN overlay; solo
+                    // estos pueden recibir overlays encima.
+                    const separadosSinOverlay = instances.filter(
+                      (i) =>
+                        i.id !== target.id &&
+                        !i.hidden &&
+                        getDescriptor(i.type).pane === "separate" &&
+                        (i.overlayPaneIndex === undefined || i.overlayPaneIndex < 1),
+                    );
+                    if (separadosSinOverlay.length === 0) {
+                      return (
+                        <option value={overlayPaneIndex}>
+                          No hay panes dedicados (creá uno primero)
+                        </option>
+                      );
+                    }
+                    return separadosSinOverlay.map((inst, i) => {
+                      const idx = i + 1;
+                      const name = getDescriptor(inst.type).name;
+                      return (
+                        <option key={inst.id} value={idx}>
+                          {idx} — {name}
+                        </option>
+                      );
+                    });
+                  })()}
+                </select>
+                {overlayPaneIndex > instances.filter(
+                  (i) =>
+                    i.id !== target.id &&
+                    !i.hidden &&
+                    getDescriptor(i.type).pane === "separate" &&
+                    (i.overlayPaneIndex === undefined || i.overlayPaneIndex < 1),
+                ).length && (
+                  <span className="text-[10px] text-tv-red">
+                    No hay pane {overlayPaneIndex} dedicado. Creá un indicador
+                    separado primero o bajá el número.
+                  </span>
+                )}
               </div>
             )}
           </div>

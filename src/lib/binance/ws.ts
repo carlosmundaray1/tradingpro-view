@@ -61,7 +61,12 @@ export class BinanceWS {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private nextId = 1;
   private klineSubs = new Map<string, KlineSubscription>();
-  private tickerSubs = new Map<string, (m: MiniTickerMsg["data"]) => void>();
+  // Múltiples handlers por stream: cuando QuotesPanel y AssetDetail ambos
+  // subscriben `btcusdt@miniTicker`, cada uno instala su handler. Antes
+  // usábamos `Map<stream, handler>` que PISABA el handler previo al llegar
+  // el segundo subscriptor, congelando el primer componente
+  // (síntoma: "el panel inferior no actualiza aunque el chart sí").
+  private tickerSubs = new Map<string, Set<(m: MiniTickerMsg["data"]) => void>>();
   private connected = false;
   private closing = false;
 
@@ -80,7 +85,6 @@ export class BinanceWS {
       this.tickerSubs.forEach((_v, k) => streams.push(k));
       if (streams.length > 0) this.send({ method: "SUBSCRIBE", params: streams, id: this.nextId++ });
     };
-
     this.ws.onmessage = (ev) => {
       try {
         const msg = JSON.parse(ev.data) as WSMsg | { result: unknown; id: number };
@@ -130,8 +134,11 @@ export class BinanceWS {
         isFinal: k.x,
       });
     } else if (msg.stream.includes("@miniTicker")) {
-      const handler = this.tickerSubs.get(msg.stream);
-      if (handler) handler((msg as MiniTickerMsg).data);
+      const handlers = this.tickerSubs.get(msg.stream);
+      if (handlers) {
+        const data = (msg as MiniTickerMsg).data;
+        handlers.forEach((h) => h(data));
+      }
     }
   }
 
@@ -150,8 +157,19 @@ export class BinanceWS {
     onTick: (s: { symbol: string; close: number; open: number; pct: number }) => void,
   ): () => void {
     const streams = symbols.map((s) => `${s.toLowerCase()}@miniTicker`);
+    // Map de handlers registrados en esta llamada para poder revertirla
+    // sin tocar handlers de otros callers que comparten el mismo stream.
+    const myHandlers = new Map<string, (d: MiniTickerMsg["data"]) => void>();
+    const toSubscribe: string[] = [];
+
     streams.forEach((stream) => {
-      this.tickerSubs.set(stream, (d) => {
+      let set = this.tickerSubs.get(stream);
+      if (!set) {
+        set = new Set();
+        this.tickerSubs.set(stream, set);
+        toSubscribe.push(stream);
+      }
+      const handler = (d: MiniTickerMsg["data"]) => {
         const close = parseFloat(d.c);
         const open = parseFloat(d.o);
         onTick({
@@ -160,12 +178,29 @@ export class BinanceWS {
           open,
           pct: open === 0 ? 0 : ((close - open) / open) * 100,
         });
-      });
+      };
+      set.add(handler);
+      myHandlers.set(stream, handler);
     });
-    if (this.connected) this.send({ method: "SUBSCRIBE", params: streams, id: this.nextId++ });
+
+    if (this.connected && toSubscribe.length > 0) {
+      this.send({ method: "SUBSCRIBE", params: toSubscribe, id: this.nextId++ });
+    }
+
     return () => {
-      streams.forEach((s) => this.tickerSubs.delete(s));
-      if (this.connected) this.send({ method: "UNSUBSCRIBE", params: streams, id: this.nextId++ });
+      const toUnsubscribe: string[] = [];
+      myHandlers.forEach((handler, stream) => {
+        const set = this.tickerSubs.get(stream);
+        if (!set) return;
+        set.delete(handler);
+        if (set.size === 0) {
+          this.tickerSubs.delete(stream);
+          toUnsubscribe.push(stream);
+        }
+      });
+      if (this.connected && toUnsubscribe.length > 0) {
+        this.send({ method: "UNSUBSCRIBE", params: toUnsubscribe, id: this.nextId++ });
+      }
     };
   }
 

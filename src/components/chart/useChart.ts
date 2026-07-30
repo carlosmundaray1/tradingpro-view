@@ -20,6 +20,11 @@ import {
   type IndicatorPoint,
 } from "@/lib/indicators";
 import { useChartStore, type IndicatorInstance } from "@/lib/store/chart-store";
+import { useTzStore } from "@/lib/store/tz-store";
+import {
+  makeTickFormatter,
+  makeTimeFormatter,
+} from "@/lib/time/tz";
 import { getSymbolPrecision, getSymbolMinMove, subscribeSymbolsCacheReady, areSymbolsCached } from "@/lib/binance/rest";
 import { VolumeProfilePrimitive } from "@/components/chart/volumeProfilePrimitive";
 import type { PreviewDrawing } from "@/components/chart/DrawingOverlay";
@@ -335,6 +340,7 @@ export function useChart(symbol: string, _timeframe: string): UseChartReturn {
   }, []);
 
   // ─── Effect: create chart once ────────────────────────────────
+  const tzId = useTzStore((s) => s.selected);
   useEffect(() => {
     if (!containerRef.current) return;
     const chart = createChart(containerRef.current, {
@@ -376,12 +382,19 @@ export function useChart(symbol: string, _timeframe: string): UseChartReturn {
       // se mueve al eje opuesto, y el eje tomado por el overlay queda activo.
       leftPriceScale: { borderColor: TV_COLORS.border, textColor: TV_COLORS.textMuted, visible: false },
       defaultVisiblePriceScaleId: "right",
+      // Localization — formatters horarios en la TZ seleccionada por el
+      // usuario (TzSelector). Por defect Tokyo o Caracas, etc. Los tickMarks
+      // del eje X y el crosshair van a reflejar esa hora en vez de UTC.
+      localization: {
+        timeFormatter: makeTimeFormatter(tzId),
+      },
       timeScale: {
         borderColor: TV_COLORS.border,
         timeVisible: true,
         secondsVisible: false,
         rightOffset: 12,
         barSpacing: 8,
+        tickMarkFormatter: makeTickFormatter(tzId),
       },
       autoSize: true,
     });
@@ -765,6 +778,20 @@ export function useChart(symbol: string, _timeframe: string): UseChartReturn {
       stretchFactorsRef.current = 0;
     };
   }, [addPriceLine, recomputePaneOffsets]);
+
+  // ─── Effect: aplicar TZ al timeScale + localization del chart.
+  // Se ejecuta al cambio de la TZ seleccionada (tzId). No recrea el
+  // chart — sólo llama applyOptions con los formatters nuevos, así
+  // lwc vuelve a renderizar el eje X con las horas en la nueva TZ
+  // (respects DST automáticamente via Intl).
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    chart.applyOptions({
+      localization: { timeFormatter: makeTimeFormatter(tzId) },
+      timeScale: { tickMarkFormatter: makeTickFormatter(tzId) },
+    });
+  }, [tzId]);
 
   // ─── Effect: aplicar priceFormat dinámico (precision + minMove) al
   // candleSeries y al priceScale del precio, según el tickSize real de Binance
