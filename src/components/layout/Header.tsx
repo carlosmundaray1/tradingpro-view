@@ -6,6 +6,11 @@ import { TimeframeSelector } from "@/components/chart/TimeframeSelector";
 import { IndicatorMenu } from "@/components/chart/IndicatorMenu";
 import { Separator } from "@/components/ui/separator";
 
+// basePath para GitHub Pages (ej: "/tradingpro-view"). En dev es "" (cadena
+// vacía). Se usa para prefijar assets estáticos como el logo (/logo.png ->
+// /tradingpro-view/logo.png) y que carguen correctamente en el subpath del repo.
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 export function Header() {
   return (
     <header className="flex h-16 items-end justify-between overflow-visible border-b border-tv-border bg-tv-panel px-3 pb-3 pl-8">
@@ -13,7 +18,7 @@ export function Header() {
         <div className="flex items-end pr-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/logo.png"
+            src={`${BASE_PATH}/logo.png`}
             alt="TradingPro View"
             className="h-24 w-auto shrink-0 self-start brightness-0 invert"
             style={{ marginBottom: "-30px" }}
